@@ -12,3 +12,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: netology
       POSTGRES_DB: diploma
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"

@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_rest_passwordreset',
+    # 'django_celery_results',
+
 ]
 
 MIDDLEWARE = [
@@ -59,8 +61,7 @@ ROOT_URLCONF = 'netology_pd_diplom.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -134,7 +135,9 @@ STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'backend.User'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # EMAIL_USE_TLS = True
 
 EMAIL_HOST = 'smtp.mail.ru'
@@ -163,3 +166,8 @@ REST_FRAMEWORK = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/1'
+# CELERY_BROKER_TRANSPORT = 'redis'
+# CELERY_RESULT_BACKEND = 'django-db'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/2'

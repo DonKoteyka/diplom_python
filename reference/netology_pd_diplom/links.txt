@@ -1,0 +1,2 @@
+отправка почты из джанго 
+https://django.fun/docs/django/5.0/topics/email/

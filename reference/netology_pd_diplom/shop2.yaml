@@ -1,17 +1,17 @@
 shop: Связной
 categories:
-  - id: 224
+  - id: 225
     name: Смартфоны
-  - id: 15
+  - id: 16
     name: Аксессуары
-  - id: 1
+  - id: 2
     name: Flash-накопители
 
 goods:
-  - id: 4216292
+  - id: 4216293
     category: 224
-    model: apple/iphone/xs-max
-    name: Смартфон Apple iPhone XS Max 512GB (золотистый)
+    model: samsung/s24
+    name: Смартфон Samsung S24 512GB (золотистый)
     price: 110000
     price_rrc: 116990
     quantity: 14
@@ -20,10 +20,10 @@ goods:
       "Разрешение (пикс)": 2688x1242
       "Встроенная память (Гб)": 512
       "Цвет": золотистый
-  - id: 4216313
+  - id: 4216314
     category: 224
-    model: apple/iphone/xr
-    name: Смартфон Apple iPhone XR 256GB (красный)
+    model: samsung/s24 red
+    name: Смартфон Samsung S24 512GB (красный)
     price: 65000
     price_rrc: 69990
     quantity: 9
@@ -32,10 +32,10 @@ goods:
       "Разрешение (пикс)": 1792x828
       "Встроенная память (Гб)": 256
       "Цвет": красный
-  - id: 4216226
+  - id: 4216225
     category: 224
-    model: apple/iphone/xr
-    name: Смартфон Apple iPhone XR 256GB (черный)
+    model: samsung/s24es
+    name: Смартфон Samsung S24es 256GB (черный)
     price: 65000
     price_rrc: 69990
     quantity: 5
@@ -44,15 +44,3 @@ goods:
       "Разрешение (пикс)": 1792x828
       "Встроенная память (Гб)": 256
       "Цвет": черный
-  - id: 4672670
-    category: 224
-    model: apple/iphone/xr
-    name: Смартфон Apple iPhone XR 128GB (синий)
-    price: 60000
-    price_rrc: 64990
-    quantity: 7
-    parameters:
-      "Диагональ (дюйм)": 6.1
-      "Разрешение (пикс)": 1792x828
-      "Встроенная память (Гб)": 256
-      "Цвет": синий
