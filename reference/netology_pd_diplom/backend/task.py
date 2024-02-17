@@ -1,4 +1,4 @@
-from celery import shared_task
+# from celery import shared_task
 from requests import get
 
 from yaml import load as load_yaml, Loader
@@ -6,10 +6,9 @@ from yaml import load as load_yaml, Loader
 from backend.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
 
 
-
-@shared_task()
+#
+# @shared_task()
 def price_update(url, request):
-
     stream = get(url).content
     data = load_yaml(stream, Loader=Loader)
     shop, _ = Shop.objects.get_or_create(name=data['shop'], user_id=request.user.id)
@@ -33,3 +32,4 @@ def price_update(url, request):
             ProductParameter.objects.create(product_info_id=product_info.id,
                                             parameter_id=parameter_object.id,
                                             value=value)
+

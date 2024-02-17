@@ -87,3 +87,56 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = ('id', 'ordered_items', 'state', 'dt', 'total_sum', 'contact',)
         read_only_fields = ('id',)
+
+
+class AdminSerializer(serializers.ModelSerializer):
+    contacts = ContactSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'email', 'company', 'position', 'contacts')
+        read_only_fields = ('id',)
+
+    def create(self, validated_data):
+        admin = super().create(validated_data)
+        admin.is_staff = True
+        admin.is_superuser = True
+        admin.save()
+        return admin
+
+class AdminFixUserSerialazer(serializers.ModelSerializer):
+    contacts = ContactSerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'email', 'company', 'position', 'contacts', 'type', 'is_staff', 'is_superuser', 'is_active')
+
+class AdminFixOrderSerialazer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ('user', 'dt',  'contact', 'state', )
+class AdminFixProdictInfoSerialazer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProductInfo
+        fields = ('model', 'external_id', 'product', 'shop', 'quantity', 'price', 'price_rrc')
+
+
+class AdminFixOrderBasketSerialazer(serializers.ModelSerializer):
+    # product_info_id = AdminFixProdictInfoSerialazer(read_only=True, many=False)
+    product_info_id = serializers.StringRelatedField()
+    class Meta:
+        model = OrderItem
+        fields = ('id', 'quantity', 'order_id', 'product_info_id')
+
+
+
+
+
+
+
+
+
+
+
+

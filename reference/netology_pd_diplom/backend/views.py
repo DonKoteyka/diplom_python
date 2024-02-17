@@ -1,6 +1,8 @@
+import json
 from distutils.util import strtobool
 
-from celery import shared_task
+from rest_framework.mixins import CreateModelMixin
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
@@ -14,43 +16,20 @@ from rest_framework.authtoken.models import Token
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from ujson import loads as load_json
 from yaml import load as load_yaml, Loader
 
 from backend.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, \
-    Contact, ConfirmEmailToken
+    Contact, ConfirmEmailToken, User
+from backend.permissions import IsAdmin
 from backend.serializers import UserSerializer, CategorySerializer, ShopSerializer, ProductInfoSerializer, \
-    OrderItemSerializer, OrderSerializer, ContactSerializer
+    OrderItemSerializer, OrderSerializer, ContactSerializer, AdminSerializer, AdminFixUserSerialazer, \
+    AdminFixOrderBasketSerialazer
 from backend.signals import new_user_registered, new_order
 
 from backend.task import price_update
 
-def partner_update(url):
-    stream = get(url).content
-
-    data = load_yaml(stream, Loader=Loader)
-
-    shop, _ = Shop.objects.get_or_create(name=data['shop'], user_id=request.user.id)
-    for category in data['categories']:
-        category_object, _ = Category.objects.get_or_create(id=category['id'], name=category['name'])
-        category_object.shops.add(shop.id)
-        category_object.save()
-    ProductInfo.objects.filter(shop_id=shop.id).delete()
-    for item in data['goods']:
-        product, _ = Product.objects.get_or_create(name=item['name'], category_id=item['category'])
-
-        product_info = ProductInfo.objects.create(product_id=product.id,
-                                                  external_id=item['id'],
-                                                  model=item['model'],
-                                                  price=item['price'],
-                                                  price_rrc=item['price_rrc'],
-                                                  quantity=item['quantity'],
-                                                  shop_id=shop.id)
-        for name, value in item['parameters'].items():
-            parameter_object, _ = Parameter.objects.get_or_create(name=name)
-            ProductParameter.objects.create(product_info_id=product_info.id,
-                                            parameter_id=parameter_object.id,
-                                            value=value)
 
 
 class RegisterAccount(APIView):
@@ -339,7 +318,7 @@ class BasketView(APIView):
         items_sting = request.data.get('items')
         if items_sting:
             try:
-                items_dict = load_json(items_sting)
+                items_dict = eval(items_sting)
             except ValueError:
                 return JsonResponse({'Status': False, 'Errors': 'Неверный формат запроса'})
             else:
@@ -436,53 +415,6 @@ class PartnerUpdate(APIView):
     - None
     """
 
-    # @shared_task
-    # def get_yaml(self,  request, *args, **kwargs):
-    #     if not request.user.is_authenticated:
-    #         return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
-    #
-    #     if request.user.type != 'shop':
-    #         return JsonResponse({'Status': False, 'Error': 'Только для магазинов'}, status=403)
-    #
-    #     url = request.data.get('url')
-    #     if url:
-    #         validate_url = URLValidator()
-    #         try:
-    #             validate_url(url)
-    #         except ValidationError as e:
-    #             return JsonResponse({'Status': False, 'Error': str(e)})
-    #         else:
-    #             stream = get(url).content
-    #
-    #             data = load_yaml(stream, Loader=Loader)
-    #
-    #             shop, _ = Shop.objects.get_or_create(name=data['shop'], user_id=request.user.id)
-    #             for category in data['categories']:
-    #                 category_object, _ = Category.objects.get_or_create(id=category['id'], name=category['name'])
-    #                 category_object.shops.add(shop.id)
-    #                 category_object.save()
-    #             ProductInfo.objects.filter(shop_id=shop.id).delete()
-    #             for item in data['goods']:
-    #                 product, _ = Product.objects.get_or_create(name=item['name'], category_id=item['category'])
-    #
-    #                 product_info = ProductInfo.objects.create(product_id=product.id,
-    #                                                           external_id=item['id'],
-    #                                                           model=item['model'],
-    #                                                           price=item['price'],
-    #                                                           price_rrc=item['price_rrc'],
-    #                                                           quantity=item['quantity'],
-    #                                                           shop_id=shop.id)
-    #                 for name, value in item['parameters'].items():
-    #                     parameter_object, _ = Parameter.objects.get_or_create(name=name)
-    #                     ProductParameter.objects.create(product_info_id=product_info.id,
-    #                                                     parameter_id=parameter_object.id,
-    #                                                     value=value)
-    #
-    #             return JsonResponse({'Status': True})
-        #
-        # return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
-
-
     def post(self, request, *args, **kwargs):
         """
                 Update the partner price list information.
@@ -538,7 +470,8 @@ class PartnerUpdate(APIView):
         #         # https://flower.readthedocs.io/en/latest/install.html#installation
         #
         #         return JsonResponse({'Status': True})
-                return JsonResponse({'Status': task.status})
+        #         return JsonResponse({'Status': 'Price is updated'})
+                return JsonResponse({'Status': "task.status"})
 
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
 
@@ -819,3 +752,67 @@ class OrderView(APIView):
                         return JsonResponse({'Status': True})
 
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+
+class RegistrAdminView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        """
+            Process a POST request and create a new user.
+
+            Args:
+                request (Request): The Django request object.
+
+            Returns:
+                JsonResponse: The response indicating the status of the operation and any errors.
+            """
+        # проверяем обязательные аргументы
+        if {'first_name', 'last_name', 'email', 'password', 'company', 'position'}.issubset(request.data):
+
+            try:
+                validate_password(request.data['password'])
+            except Exception as password_error:
+                error_array = []
+                # noinspection PyTypeChecker
+                for item in password_error:
+                    error_array.append(item)
+                return JsonResponse({'Status': False, 'Errors': {'password': error_array}})
+            else:
+                # проверяем данные для уникальности имени пользователя
+
+                admin_serializer = AdminSerializer(data=request.data)
+                if admin_serializer.is_valid():
+                    # сохраняем пользователя
+                    admin = admin_serializer.save()
+                    admin.set_password(request.data['password'])
+                    admin.save()
+
+                    return JsonResponse({'Status': True})
+                else:
+                    return JsonResponse({'Status': False, 'Errors': admin_serializer.errors})
+
+        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+
+class AdminFixUserView(ModelViewSet):
+    """
+     the administrator class for changing users and administrators
+
+    """
+    queryset = User.objects.all()
+    serializer_class = AdminFixUserSerialazer
+    permission_classes = (IsAdmin, IsAuthenticated)
+
+class AdminFixBasketView(ModelViewSet):
+    queryset = OrderItem.objects.all()
+    serializer_class = AdminFixOrderBasketSerialazer
+    permission_classes = (IsAdmin, IsAuthenticated)
+
+
+
+
+
+
+
+
+
+
+
