@@ -1,7 +1,7 @@
 import json
 from distutils.util import strtobool
 
-from rest_framework.mixins import CreateModelMixin
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from django.contrib.auth import authenticate
@@ -24,8 +24,9 @@ from backend.models import Shop, Category, Product, ProductInfo, Parameter, Prod
     Contact, ConfirmEmailToken, User
 from backend.permissions import IsAdmin
 from backend.serializers import UserSerializer, CategorySerializer, ShopSerializer, ProductInfoSerializer, \
-    OrderItemSerializer, OrderSerializer, ContactSerializer, AdminSerializer, AdminFixUserSerialazer, \
-    AdminFixOrderBasketSerialazer
+    OrderItemSerializer, OrderSerializer, ContactSerializer, AdminSerializer, AdminFixUserSerialazer
+
+
 from backend.signals import new_user_registered, new_order
 
 from backend.task import price_update
@@ -415,6 +416,7 @@ class PartnerUpdate(APIView):
     - None
     """
 
+    @csrf_exempt
     def post(self, request, *args, **kwargs):
         """
                 Update the partner price list information.
@@ -439,7 +441,10 @@ class PartnerUpdate(APIView):
             except ValidationError as e:
                 return JsonResponse({'Status': False, 'Error': str(e)})
             else:
-                task = price_update(url, request)
+                user_id = request.user.id
+
+                # price_update(url, int(user_id))
+                task = price_update.delay(url, user_id)
         #         stream = get(url).content
         #
         #         data = load_yaml(stream, Loader=Loader)
@@ -471,7 +476,8 @@ class PartnerUpdate(APIView):
         #
         #         return JsonResponse({'Status': True})
         #         return JsonResponse({'Status': 'Price is updated'})
-                return JsonResponse({'Status': "task.status"})
+                print()
+                return JsonResponse({'Status': f'задача добавлена в очередь'})
 
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
 
@@ -801,10 +807,10 @@ class AdminFixUserView(ModelViewSet):
     serializer_class = AdminFixUserSerialazer
     permission_classes = (IsAdmin, IsAuthenticated)
 
-class AdminFixBasketView(ModelViewSet):
-    queryset = OrderItem.objects.all()
-    serializer_class = AdminFixOrderBasketSerialazer
-    permission_classes = (IsAdmin, IsAuthenticated)
+# class AdminFixBasketView(ModelViewSet):
+#     queryset = Order.objects.all()
+#     serializer_class = AdminFixOrderSerialazer
+#     permission_classes = (IsAdmin, IsAuthenticated)
 
 
 

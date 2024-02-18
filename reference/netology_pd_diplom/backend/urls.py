@@ -4,12 +4,12 @@ from django_rest_passwordreset.views import reset_password_request_token, reset_
 from backend.views import PartnerUpdate, RegisterAccount, LoginAccount, CategoryView, ShopView, ProductInfoView, \
     BasketView, \
     AccountDetails, ContactView, OrderView, PartnerState, PartnerOrders, ConfirmAccount, \
-    AdminFixUserView, RegistrAdminView, AdminFixBasketView
+    AdminFixUserView, RegistrAdminView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register('admin/user_fix', AdminFixUserView)
-router.register('admin/basket_fix', AdminFixBasketView)
+# router.register('admin/basket_fix', AdminFixBasketView)
 
 app_name = 'backend'
 urlpatterns = [

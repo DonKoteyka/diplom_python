@@ -111,23 +111,27 @@ class AdminFixUserSerialazer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'first_name', 'last_name', 'email', 'company', 'position', 'contacts', 'type', 'is_staff', 'is_superuser', 'is_active')
 
-class AdminFixOrderSerialazer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ('user', 'dt',  'contact', 'state', )
-class AdminFixProdictInfoSerialazer(serializers.ModelSerializer):
 
-    class Meta:
-        model = ProductInfo
-        fields = ('model', 'external_id', 'product', 'shop', 'quantity', 'price', 'price_rrc')
-
-
-class AdminFixOrderBasketSerialazer(serializers.ModelSerializer):
-    # product_info_id = AdminFixProdictInfoSerialazer(read_only=True, many=False)
-    product_info_id = serializers.StringRelatedField()
-    class Meta:
-        model = OrderItem
-        fields = ('id', 'quantity', 'order_id', 'product_info_id')
+# class AdminFixProdictInfoSerialazer(serializers.ModelSerializer):
+#
+#     class Meta:
+#         model = ProductInfo
+#         fields = ('model', 'external_id', 'product', 'shop', 'quantity', 'price', 'price_rrc')
+#         # fields = '__all__'
+#
+#
+# class AdminFixOrderBasketSerialazer(serializers.ModelSerializer):
+#     product_info_id = AdminFixProdictInfoSerialazer(many=False)
+#
+#     class Meta:
+#         model = OrderItem
+#         fields = ('id', 'quantity', 'order_id', 'product_info_id')
+#
+# class AdminFixOrderSerialazer(serializers.ModelSerializer):
+#     id = AdminFixOrderBasketSerialazer(many=False)
+#     class Meta:
+#         model = Order
+#         fields = ('user', 'dt',  'contact', 'state', 'id')
 
 
 

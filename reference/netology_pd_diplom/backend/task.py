@@ -1,17 +1,19 @@
-# from celery import shared_task
+from celery import shared_task
 from requests import get
 
 from yaml import load as load_yaml, Loader
 
-from backend.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
+from backend.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter, User
+from netology_pd_diplom.celery_app import app
 
 
-#
-# @shared_task()
-def price_update(url, request):
+@app.task(serializer='json')
+# @shared_task
+def price_update(url, user_id):
+    print("task start")
     stream = get(url).content
     data = load_yaml(stream, Loader=Loader)
-    shop, _ = Shop.objects.get_or_create(name=data['shop'], user_id=request.user.id)
+    shop, _ = Shop.objects.get_or_create(name=data['shop'], user_id=user_id)
     for category in data['categories']:
         category_object, _ = Category.objects.get_or_create(id=category['id'], name=category['name'])
         category_object.shops.add(shop.id)
@@ -32,4 +34,6 @@ def price_update(url, request):
             ProductParameter.objects.create(product_info_id=product_info.id,
                                             parameter_id=parameter_object.id,
                                             value=value)
+
+
 
