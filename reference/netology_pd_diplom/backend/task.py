@@ -6,9 +6,8 @@ from yaml import load as load_yaml, Loader
 from backend.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter, User
 from netology_pd_diplom.celery_app import app
 
-
-@app.task(serializer='json')
-# @shared_task
+@shared_task
+# @app.task(serializer='json')
 def price_update(url, user_id):
     print("task start")
     stream = get(url).content
