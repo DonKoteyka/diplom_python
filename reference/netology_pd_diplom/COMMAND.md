@@ -11,6 +11,3 @@ sudo DOCKER_BUILDKIT=0 docker-compose up -d --build
 celery -A netology_pd_diplom flower
 ```
 
-```commandline
-celery --broker=amqp://guest:guest@localhost:5672// flower
-```
