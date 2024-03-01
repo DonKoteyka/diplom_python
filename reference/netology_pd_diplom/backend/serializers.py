@@ -1,7 +1,9 @@
 # Верстальщик
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import serializers
 
 from backend.models import User, Category, Shop, ProductInfo, Product, ProductParameter, OrderItem, Order, Contact
+from backend.task import send_email_new_user
 
 
 class ContactSerializer(serializers.ModelSerializer):

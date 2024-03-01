@@ -26,10 +26,14 @@ from backend.permissions import IsAdmin
 from backend.serializers import UserSerializer, CategorySerializer, ShopSerializer, ProductInfoSerializer, \
     OrderItemSerializer, OrderSerializer, ContactSerializer, AdminSerializer, AdminFixUserSerialazer
 
+from backend.task import send_email_new_user
 
 from backend.signals import new_user_registered, new_order
 
 from backend.task import price_update
+
+from celery.result import AsyncResult
+from netology_pd_diplom.celery_app import app
 
 
 
@@ -39,7 +43,7 @@ class RegisterAccount(APIView):
     """
 
     # Регистрация методом POST
-
+    @csrf_exempt
     def post(self, request, *args, **kwargs):
         """
             Process a POST request and create a new user.
@@ -71,6 +75,8 @@ class RegisterAccount(APIView):
                     # сохраняем пользователя
                     user = user_serializer.save()
                     user.set_password(request.data['password'])
+                    result = send_email_new_user.delay(user.id)
+                    print()
                     user.save()
                     return JsonResponse({'Status': True})
                 else:
@@ -443,40 +449,8 @@ class PartnerUpdate(APIView):
             else:
                 user_id = request.user.id
 
-                # price_update(url, int(user_id))
-                task = price_update.delay(url, user_id)
-        #         stream = get(url).content
-        #
-        #         data = load_yaml(stream, Loader=Loader)
-        #
-        #         shop, _ = Shop.objects.get_or_create(name=data['shop'], user_id=request.user.id)
-        #         for category in data['categories']:
-        #             category_object, _ = Category.objects.get_or_create(id=category['id'], name=category['name'])
-        #             category_object.shops.add(shop.id)
-        #             category_object.save()
-        #         ProductInfo.objects.filter(shop_id=shop.id).delete()
-        #         for item in data['goods']:
-        #             product, _ = Product.objects.get_or_create(name=item['name'], category_id=item['category'])
-        #
-        #             product_info = ProductInfo.objects.create(product_id=product.id,
-        #                                                       external_id=item['id'],
-        #                                                       model=item['model'],
-        #                                                       price=item['price'],
-        #                                                       price_rrc=item['price_rrc'],
-        #                                                       quantity=item['quantity'],
-        #                                                       shop_id=shop.id)
-        #             for name, value in item['parameters'].items():
-        #                 parameter_object, _ = Parameter.objects.get_or_create(name=name)
-        #                 ProductParameter.objects.create(product_info_id=product_info.id,
-        #                                                 parameter_id=parameter_object.id,
-        #                                                 value=value)
-        # # partner_update(url)
-        #         # почитать про селери и джангу https://habr.com/ru/companies/otus/articles/503380/
-        #         # https://flower.readthedocs.io/en/latest/install.html#installation
-        #
-        #         return JsonResponse({'Status': True})
-        #         return JsonResponse({'Status': 'Price is updated'})
-                print()
+                price_update.delay(url, user_id)
+
                 return JsonResponse({'Status': f'задача добавлена в очередь'})
 
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})

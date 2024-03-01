@@ -5,6 +5,13 @@ from yaml import load as load_yaml, Loader
 
 from backend.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter, User
 from netology_pd_diplom.celery_app import app
+from typing import Type
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+
+
+from backend.models import ConfirmEmailToken, User
 
 @shared_task
 # @app.task(serializer='json')
@@ -33,6 +40,25 @@ def price_update(url, user_id):
             ProductParameter.objects.create(product_info_id=product_info.id,
                                             parameter_id=parameter_object.id,
                                             value=value)
+@shared_task
+# @app.task()
+def send_email_new_user(user_id):
+    print("task start")
+    user = User.objects.get(id=user_id)
+    token, _ = ConfirmEmailToken.objects.get_or_create(user_id=user.pk)
+
+    msg = EmailMultiAlternatives(
+        # title:
+        f"Password Reset Token for {user.email}",
+        # message:
+        token.key,
+        # from:
+        settings.EMAIL_HOST_USER,
+        # to:
+        [user.email]
+    )
+    msg.send()
+    return f'Отправленно! token:{token.key}'
 
 
 

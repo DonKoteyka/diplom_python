@@ -54,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
 ]
 
 ROOT_URLCONF = 'netology_pd_diplom.urls'
@@ -91,7 +92,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME'),
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD')
@@ -170,6 +171,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CELERY_BROKER_URL = 'redis://127.0.0.1:6379/1'
 CELERY_BROKER_URL = 'redis://redis:6379/1'
 # CELERY_BROKER_URL = 'redis://localhost:6379/1'
-
-# # CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/2'
-# CELERY_RESULT_BACKEND = 'redis://redis:6379/2'
+#
+# CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/2'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/2'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/2'
